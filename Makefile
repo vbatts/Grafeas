@@ -5,11 +5,11 @@ CLEAN := *~
 
 default: build
 
-install.tools: .install.protoc-gen-go
+install.tools: .install.protoc-go-go
 
-CLEAN += .install.protoc-gen-go
-.install.protoc-gen-go:
-	go get -u -v github.com/golang/protobuf/protoc-gen-go && touch $@
+CLEAN += .install.protoc-go-go
+.install.protoc-go-go:
+	go get -u -v github.com/gogo/protobuf/protoc-gen-gogo && touch $@
 
 build:  vet fmt grafeas_go
 	go build -v ./...
@@ -24,17 +24,16 @@ test:
 vet:
 	@go tool vet ${SRC}
 
-model-go/v1alpha1/v1alpha1/proto/grafeas.pb.go: .install.protoc-gen-go v1alpha1/proto/grafeas.proto
-	@mkdir -p ./model-go/v1alpha1/
+v1alpha1/proto/grafeas.pb.go: .install.protoc-go-go v1alpha1/proto/grafeas.proto
 	protoc \
 		-I. \
 		-I ./vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		-I ./vendor/github.com/googleapis/googleapis \
-		--go_out=./v1alpha1/ \
-		v1alpha1/proto/grafeas.proto
+		--gogo_out=plugins=grpc=:. \
+		./v1alpha1/proto/grafeas.proto
 
 .PHONY: grafeas_go
-grafeas_go: model-go/v1alpha1/v1alpha1/proto/grafeas.pb.go
+grafeas_go: v1alpha1/proto/grafeas.pb.go fmt
 
 clean:
 	go clean ./...
